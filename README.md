@@ -12,13 +12,13 @@ The project includes a full R-based analysis, visualizations, and an online slid
 3. Does higher purchasing power lead to better access to quality healthcare?
 
 ## Project Structure
-`
+```
 analysis/       # Quarto source file for written report
 scripts/        # R script for generating plots
 data/           # Dataset used in the analysis
 report/         # Final compiled PDF report
 docs/           # HTML slideshow and assets (hosted with GitHub Pages)
-`
+```
 
 ## View the Presentation Slides
 
