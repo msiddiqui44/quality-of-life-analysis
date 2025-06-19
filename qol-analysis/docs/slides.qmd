@@ -1,0 +1,160 @@
+---
+title: "Quality of Life Dataset Analysis"
+format: 
+  revealjs:
+    theme: blood
+    fontsize: 17pt
+editor: visual
+---
+
+```{r}
+#| include: false
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(mapproj)
+library(RColorBrewer)
+library(ggridges)
+library(countrycode)
+library(gridExtra)
+load("C:/Users/msidd/Downloads/prjdata.RData")
+```
+
+## Introduction
+
+-   **Key Idea:** Quality of life is shaped by trade-offs between safety, affordability, environmental conditions, and access to services.
+
+<!-- -->
+
+-   **Objective:** Investigate how economic prosperity influences well-being through safety, cost of living, pollution, commute times, and healthcare.
+
+<!-- -->
+
+-   **Data Source:** Numbeo – a global database of living conditions.
+
+<!-- -->
+
+-   **Main Question:** Does more money mean a better life?
+
+## Research Questions
+
+-   **Safety & Cost of Living:** Do safer countries have a higher cost of living?
+
+-   **Pollution & Commute Times:** How does economic growth impact environmental quality and transportation?
+
+-   **Healthcare & Purchasing Power:** Does greater wealth lead to better healthcare access?
+
+## **Correlation between Safety Value and Cost of Living?**
+
+-   **Cost of Living vs Safety Value**
+    -   A negative correlation—safer countries tend to have a higher cost of living.
+-   Wealthier nations invest more in security, infrastructure, and services.
+-   Economic growth improves safety but raises living costs.
+
+```{r}
+#| warning: false
+qol$Cost.of.Living.Category = factor(qol$Cost.of.Living.Category, 
+                                    levels = c("Very Low", "Low", "Moderate", 
+                                                 "High", "Very High"))
+qol_clean = qol |> 
+  filter(!is.na(Safety.Value) & !is.na(Cost.of.Living.Category))
+
+# Graph 3: Cost of Living vs Safety Value
+ggplot(qol_clean, aes(x = Cost.of.Living.Category, y = Safety.Value,
+                     fill = Cost.of.Living.Category)) +
+  # 1. Violin Plot (with modifications)
+  geom_violin(alpha = 0.6, draw_quantiles = c(0.5)) +  # Violin plot, transparent, median line
+  # 3. Aesthetics
+  scale_fill_brewer(palette = 'RdYlBu') +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 10)) +
+  labs(y = "Safety Value", x = "Cost of Living Category",
+       title = "Distribution of Safety Value by Cost of Living Category")
+```
+
+## Do pollution levels and commute times relate?
+
+-   **Pollution Value by Traffic Commute Time Category**
+    -   Longer commute times are associated with higher pollution levels.
+-   Implication: Traffic congestion is a major contributor to environmental decline.
+
+<!-- -->
+
+-   Solution: Investment in sustainable transport is essential.
+
+```{r}
+qol$Traffic.Commute.Time.Category = factor(x = qol$Traffic.Commute.Time.Category, levels = c("Very Low", "Low", "Moderate", "High", "Very High"))
+ggplot(data = qol |> filter(!is.na(Traffic.Commute.Time.Category), Pollution.Value > 0), aes(x = Traffic.Commute.Time.Category, y = Pollution.Value)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", outlier.shape = 8, outlier.colour = "red", outlier.size = 2) +
+  labs(
+    title = "Pollution Value by Traffic Commute Time Category",
+    x = "Traffic Commute Time Category",
+    y = "Pollution Value"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+```
+
+## Does higher purchasing power lead to better healthcare access?
+
+-   **Purchasing Power vs Health Care Quality**
+    -   Strong positive correlation: wealthier nations tend to have better healthcare
+-   Outliers - Angola, Timor-Leste, and Kiribati:
+    -   Due to their unusually high purchasing power - suggesting that factors other then wealth, such as geographical isolation could be limiting the impact of economic prosperity in healthcare quality
+
+```{r}
+#| message: false
+#| warning: false
+top_3_outliers = qol |> 
+  filter(Health.Care.Value > 0 & Purchasing.Power.Value > 0) |> 
+  arrange(desc(Purchasing.Power.Value)) |> 
+  head(3)
+
+# Scatter plot with top 3 outliers labeled on the y-axis
+ggplot(qol |> filter(Health.Care.Value > 0 & Purchasing.Power.Value > 0), aes(x = Health.Care.Value, y = Purchasing.Power.Value)) +
+  geom_point(color = "blue", alpha = 0.6, size = 3) +  
+  geom_smooth(method = "lm", color = "red", size = 3, se = FALSE) + 
+  geom_point(data = top_3_outliers, aes(x = Health.Care.Value, y = Purchasing.Power.Value), color = "red", size = 4) +  # Top 3 outliers in red
+  geom_text(data = top_3_outliers, aes(label = country), vjust = -1, color = "black", size = 3) +  # Label top 3 outliers
+  labs(
+    title = "Purchasing Power vs Health Care Quality",
+    x = "Health Care Quality Value",
+    y = "Purchasing Power Value"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 12, face = "bold")
+  )
+```
+
+## Conclusion: The Trade-Offs of Modern Living
+
+-   Economic strength enhances safety, healthcare, and infrastructure—but at a cost.
+
+<!-- -->
+
+-   Pollution and long commutes are byproducts of economic progress.
+
+<!-- -->
+
+-   **There is no perfect place to live—countries and individuals must navigate trade-offs.**
+
+<!-- -->
+
+-   **Policy Recommendations:**
+
+    -   Balance safety investments with affordability.
+
+    -   Prioritize sustainable urban planning to reduce pollution.
+
+    -   Strengthen healthcare accessibility beyond just economic growth.
