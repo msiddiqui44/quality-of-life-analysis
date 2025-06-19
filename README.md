@@ -23,7 +23,7 @@ docs/           # HTML slideshow and assets (hosted with GitHub Pages)
 ## View the Presentation Slides
 
 View the live slideshow here (hosted via GitHub Pages):  
-https://msiddiqui44.github.io/qol-analysis/slides.html
+https://msiddiqui44.github.io/quality-of-life-analysis/slides.html
 
 ## Report
 
