@@ -60,4 +60,4 @@ This project is licensed under the MIT License.
 ## Author
 
 Mustafa Siddiqui  
-For questions or feedback, feel free to reach out via GitHub.
+Feel free to connect or reach out via [GitHub](https://github.com/msiddiqui44) or [LinkedIn](https://www.linkedin.com/in/mustafa-siddiquii/).
