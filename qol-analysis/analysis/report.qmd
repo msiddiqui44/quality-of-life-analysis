@@ -1,0 +1,283 @@
+---
+title: "Quality of Life Dataset Analysis"
+author: "Mustafa Siddiqui"
+format: pdf
+editor: visual
+---
+
+## **Introduction**
+
+Globalization continues to influence contemporary living, linking economic stability, security, pollution, and healthcare. These interconnected factors often represent trade-offs that individuals, communities, and governments must navigate. This report explores how these elements interact across nations and highlights trends that can inform policies aimed at improving quality of life. Understanding these interconnections is essential for policymakers and urban planners working to create more sustainable, equitable, and thriving societies, while recognizing the trade-offs inherent in modern living. These trade-offs—such as the balance between economic growth and environmental health, or safety and cost of living—shape quality of life across regions. This research, based on data from Numbeo, a private company that partners with major news organizations to provide reliable insights into global living conditions, uncovers trends in safety, cost of living, pollution, commute times, and healthcare access. The following sections will explore these trade-offs and their impact on the global experience. This research addresses the following key questions:
+
+1.  Is there a correlation between Safety Value and Cost of Living, where less safe countries tend to have a lower cost of living?
+
+2.  Which continents have the highest pollution values, and how do commute times contribute to these pollution levels? Do cars show to play a significant role in overall pollution?
+
+3.  Do countries with higher purchasing power tend to have better access to quality healthcare?
+
+The following sections present preliminary answers to these questions, supported by relevant graphs and data visualizations.
+
+## **Section 1: Correlation Between Safety Value and Cost of Living**
+
+**Research Question:** Is there a correlation between Safety Value and Cost of Living, where less safe countries tend to have a lower cost of living?
+
+To address this question, I looked at the safety values and cost of living categories of many different countries. The analysis reveals a clear pattern: countries with lower safety values tend to have a lower cost of living. There are many reasons why this might be the case, such as economic instability, absence of infrastructure, and differing levels of government investment. By examining these connections more deeply, we can find the position of safety in cost of living between various nations.
+
+**Understanding our Cost of Living Indexes:** Numbeo calculates the cost of living indexes by taking into account several factors, including the prices of consumer goods such as groceries, restaurants, transportation, and utilities, as well as accommodation expenses like rent. These indexes are based on relative prices compared to a baseline. The indexes help in comparing the cost of living in different cities by assessing various aspects of everyday expenses and purchasing power.
+
+```{r}
+#| include: false
+library(ggplot2)
+library(tidyverse)
+library(maps)
+library(mapproj)
+library(RColorBrewer)
+library(ggridges)
+library(countrycode)
+library(gridExtra)
+load("C:/Users/msidd/Downloads/prjdata.RData")
+
+```
+
+```{r width=60}
+#| echo: false
+#| fig-height: 7
+#| fig-width: 14
+
+# Graph 1: Distribution of Safety Values
+p1 = ggplot(qol, aes(x = Safety.Value)) + 
+  geom_histogram(binwidth = 2, fill = "lightblue", color = "black", 
+                 alpha = 0.7) + 
+  theme_minimal() + 
+  labs(title = "Distribution of Safety Values", x = "Safety Value", 
+       y = "Count") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 10))
+
+# Graph 2: Count of Countries by Cost of Living Category
+p2 = ggplot(qol |> filter(!is.na(Cost.of.Living.Category)), 
+            aes(x = Cost.of.Living.Category, fill = Cost.of.Living.Category))+ 
+  geom_bar() + 
+  scale_fill_brewer(palette = "Set3") + 
+  theme_minimal() + 
+  labs(title = "Count of Countries by Cost of Living Category", 
+       x = "Cost of Living Category", y = "Count") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 10)) + 
+  theme(legend.position = 'none')
+
+# Arrange the two plots side by side for easy comparison
+grid.arrange(p1, p2, ncol = 2)
+```
+
+**Graph 1: Distribution of Safety Values**
+
+Graph 1 shows that the distribution of safety values is pretty normal. Most countries fall within a moderate safety range, with fewer countries at the extremes of very low or very high safety values. This indicates a generally balanced perception of safety across different regions.
+
+**Graph 2: Count of Countries by Cost of Living Category**
+
+Graph 2 indicates that most countries are characterized by low or very low cost of living. The evidence reveals more low and very low cost of living countries, as well as fewer countries with moderate, high, or very high costs of living. This is evidence of the distribution of the costs of living worldwide, which proves that most countries have lower costs of living.
+
+These exploratory graphs lay the foundation for diving into our primary research question. They provide a preliminary understanding of the data distribution, which sets the stage for a deeper analysis.
+
+```{r width=90}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 6
+#| fig-width: 12
+
+qol$Cost.of.Living.Category = factor(qol$Cost.of.Living.Category, 
+                                    levels = c("Very Low", "Low", "Moderate", 
+                                                 "High", "Very High"))
+qol_clean = qol |> 
+  filter(!is.na(Safety.Value) & !is.na(Cost.of.Living.Category))
+
+# Graph 3: Cost of Living vs Safety Value
+ggplot(qol_clean, aes(x = Cost.of.Living.Category, y = Safety.Value,
+                     fill = Cost.of.Living.Category)) +
+  # 1. Violin Plot (with modifications)
+  geom_violin(alpha = 0.6, draw_quantiles = c(0.5)) +  # Violin plot, transparent, median line
+  # 3. Aesthetics
+  scale_fill_brewer(palette = 'RdYlBu') +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 10)) +
+  labs(y = "Safety Value", x = "Cost of Living Category",
+       title = "Distribution of Safety Value by Cost of Living Category")
+```
+
+**Graph 3: Cost of Living vs Safety Value**
+
+Graph 3 illustrates the distribution of safety values across different cost of living categories. The data indicates a general trend: as the cost of living category increases from "Very Low" to "Very High," the distribution of safety values shifts toward higher values.
+
+This suggests that countries with higher costs of living tend to exhibit higher safety values. In lower cost of living categories, there is a wider range of safety values, while in higher cost of living categories, the distribution of safety values becomes narrower and concentrated at higher values. The median safety value also generally increases with the cost of living category. This visualization highlights a potential relationship between economic factors and safety, where higher cost of living is associated with higher, more consistent safety values. This supports the idea that wealthier countries can afford better safety infrastructure, but at the cost of higher living expenses. The trade-off between cost and security is one of the key decisions individuals and policymakers face
+
+## **Section 2: Global Pollution Levels and Commute Time**
+
+**Research Question:** Which continents have the highest pollution values, and how do commute times contribute to these pollution levels? Do cars show to play a significant role in overall pollution?
+
+In this section, we investigate the environmental trade-offs associated with modern economic progress. Pollution is often a byproduct of economic growth, urbanization, and industrialization. The question of commute time and car dependency brings this to light: longer commutes are often tied to higher pollution levels, where convenience is paid for by the environment.
+
+To explore this question, I analyzed air pollution levels across continents and examined how commute times contribute to pollution. The pollution index is a composite measure, factoring in air and water quality, waste management, noise, and light pollution— with air pollution carrying the highest weight. In this section, we will also investigate the effect of traffic by cars in helping to cause the levels of pollution overall.
+
+```{r width=60}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 8
+#| fig-width: 12
+
+# Graph 4: Pollution by Country
+qol$region = countrycode(qol$country, origin = "country.name", 
+                          destination = "iso3c")
+
+world_map = map_data("world")
+world_map$region = countrycode(world_map$region, origin = "country.name", 
+                                destination = "iso3c")
+
+world_pollution = left_join(world_map, qol, by = "region") |>
+  mutate(Pollution.Value = if_else(region == "GRL",NA_real_, Pollution.Value), 
+         Pollution.Category = if_else(region == "GRL", NA_character_, 
+                                      Pollution.Category))
+
+ggplot(world_pollution, aes(long, lat, group = group, 
+                            fill = Pollution.Category)) + 
+  geom_polygon(color = "white", linewidth = 0.2) + 
+  scale_fill_manual(values = c("Very Low" = "lightblue", "Low" = "yellow2", 
+                               "Moderate" = "orange", "High" = "red", 
+                               "Very High" = "darkred"),  
+                                na.value = "grey50") + 
+  labs(title = "Global Pollution by Country", subtitle = 
+         "Based on a composite index of air + water quality, waste management, 
+         noise and light pollution, with the highest weight on 
+         air pollution.") + 
+  theme_minimal(base_size = 14) + 
+  theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5), 
+        plot.subtitle = element_text(size = 12, hjust = 0.5), 
+        legend.position = "bottom", legend.title = element_text(size = 12, 
+        face = "bold"), legend.text = element_text(size = 10), axis.title = 
+        element_blank(), axis.text = element_blank())
+```
+
+**Graph 4: Pollution by Country**
+
+Graph 4 illustrates that the data shows that many countries in Africa, Asia, and South America have high to very high pollution levels, while countries in North America, Europe, and Oceania generally have lower pollution levels. This highlights the trade-off between economic industrialization and environmental degradation. Industrial economies often have to balance the economic benefits of growth with the environmental costs.
+
+```{r width=60}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 8
+#| fig-width: 12
+
+# Graph 5: Pollution Value by Traﬀic Commute Time Category
+qol$Traffic.Commute.Time.Category = factor(
+                                    x = qol$Traffic.Commute.Time.Category, 
+                                    levels = c("Very Low", "Low", "Moderate", 
+                                               "High", "Very High"))
+
+ggplot(data = qol |> filter(!is.na(Traffic.Commute.Time.Category), 
+                            Pollution.Value > 0), 
+       aes(x = Traffic.Commute.Time.Category, y = Pollution.Value)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", 
+               outlier.shape = 8,  outlier.colour = "red", 
+               outlier.size = 2) +
+  labs(
+    title = "Pollution Value by Traffic Commute Time Category",
+    x = "Traffic Commute Time Category",
+    y = "Pollution Value"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+    axis.title = element_text(size = 14, face = "bold")
+  )
+```
+
+**Graph 5: Pollution Value by Traffic Commute Time Category**
+
+Graph 5 highlights a clear trend: longer commute times are linked to higher pollution levels. This underscores the environmental cost of traffic congestion, with heavy vehicle use contributing to poor air quality. The presence of extreme outliers suggests that in some countries, urban planning inefficiencies exacerbate pollution. These findings reinforce the need for sustainable transportation policies, such as investments in public transit and clean energy vehicles.
+
+In conclusion, measurement of pollution on different continents and influence of commute time provides important results to global environmental issues. Industrialized continents and metropolitan continents usually have greater levels of pollution, reflecting the role of economic activity on the environment. The information also shows a strong relationship between longer traffic travel times and higher levels of pollution, hence motor traffic being among the leading causes of overall pollution. This calls for the need to have traffic congestion reduction measures and encourage more economically friendly transport. Finally, it is important to address these variables in order to enhance environmental quality and public health.
+
+## **Section 3: Purchasing Power and Access to Quality Healthcare**
+
+**Research Question:** Do countries with higher purchasing power tend to have better access to quality healthcare?
+
+To address this question, I examined the relationship between the purchasing power of countries and their access to quality healthcare. The purchasing power index measures the ability of residents to buy goods and services based on their average net salary. Access to quality healthcare is assessed through various indicators, including the availability of medical services, the quality of healthcare facilities, and the overall effectiveness of the healthcare system.
+
+```{r width=60}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 8
+#| fig-width: 12
+
+# Graph 6: Distribution of Health Care Access (Category)
+ggplot(qol, aes(x = Health.Care.Category)) +
+  geom_bar(data = subset(qol, !is.na(Health.Care.Category)), 
+           fill = "lightgreen") +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Health Care Access (Category)",
+    x = "Health Care Access Category",
+    y = "Count"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+    axis.title = element_text(size = 14, face = "bold"),
+    axis.text = element_text(size = 14)
+  )
+```
+
+**Graph 6: Distribution of Health Care Access (Category)**
+
+Graph 6 illustrates the distribution of healthcare access across different categories. The data shows that most countries fall into the Moderate and High healthcare access categories, indicating that a significant portion of the global population has reasonable to good access to quality healthcare. However, there are still disparities, with some countries in the Very Low and Very High access categories.
+
+```{r width=60}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-height: 8
+#| fig-width: 12
+
+# Graph 7: Correlation Between Purchasing Power & Access to Quality Healthcare
+top_3_outliers = qol |> filter(Health.Care.Value > 0 
+                               & Purchasing.Power.Value > 0) |> 
+  arrange(desc(Purchasing.Power.Value)) |> head(3)
+
+ggplot(qol |> filter(Health.Care.Value > 0 & Purchasing.Power.Value > 0), 
+       aes(x = Health.Care.Value, y = Purchasing.Power.Value)) + 
+  geom_point(color = "blue", alpha = 0.6, size = 3) + 
+  geom_smooth(method = "lm", color = "red", size = 3, se = FALSE) + 
+  geom_point(data = top_3_outliers, aes(x = Health.Care.Value, 
+           y = Purchasing.Power.Value), color = "red", size = 4) + 
+  geom_text(data = top_3_outliers, aes(label = country), vjust = -1, 
+            color = "black", size = 3) + 
+  labs(title = "Purchasing Power vs Health Care Quality", 
+       x = "Health Care Quality Value", y = "Purchasing Power Value") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"), 
+        axis.title = element_text(size = 14, face = "bold"), axis.text = 
+        element_text(size = 14, face = "bold"))
+
+```
+
+**Graph 7: Correlation Between Purchasing Power and Access to Quality Healthcare**
+
+Graph 7 shows how closely wealthier countries correlate to improved access to healthcare, painting the economic imbalance in medical centers. Although most countries provide some kind of health care, the purchasing power influences the quality of care, quantity of facilities, and the intensity of medical technology. Notable, however, are relatively insignificant outlier countries with enhanced access to healthcare at lesser purchasing power which can be supported by robust public health policies or international assistance. This implies the primary positioning of economic development as a determinant in health outcomes.
+
+Despite this, countries such as Angola, Timor-Leste, and Kiribati indicate that purchasing power is not always the key to quality healthcare access. These countries, though having the economic ability, encounter issues such as wealth inequalities, infrastructure constraints, and geographical restrictions that make proper healthcare provision difficult.
+
+Overall, purchasing power has an extremely high correlation with health access. Although healthcare access is good to excellent in most countries, the nature of the access is greatly dependent on the economy. More affluent countries have the ability to invest more in healthcare, thus improving facilities and the system's efficiency. This serves to attest to the role that economic development plays in quality care and citizen welfare. Policy-makers can make use of the understanding to fill existing gaps and improve the accessibility and quality of healthcare for all.
+
+## **Conclusion**
+
+This study illustrates the highly dominant role of economic conditions on the quality of life in numerous aspects, ranging from safety and cost of living to pollution and healthcare quality. Based on our analysis, wealthier nations enjoy superior healthcare quality, less pollution, and better safety levels but have traffic congestion as a massive polluter in most cities. While the Numbeo data provides a valuable global overview, it's important to acknowledge potential limitations. The data relies on user-contributed information, which might introduce biases or inconsistencies. Additionally, the indicators used, while comprehensive, may not capture the full complexity of 'quality of life,' which can be subjective and influenced by various cultural and individual factors. Future research could explore these nuances further by incorporating qualitative data or focusing on specific regional contexts. These results indicate that interventions to build up public health, safety, and pollution control must prioritize investments in healthcare and sustainable urbanization. Policymakers can use these insights to design interventions that promote a more equitable and healthier global society, focusing on creating greener, more affordable, and safer living conditions for all
